@@ -1,0 +1,14 @@
+#!/bin/bash
+local/start --build
+
+docker cp db db:db
+
+echo "Initializing database.."
+timeout 90s bash -c "until docker exec db pg_isready ; do sleep 0.2 ; done"
+sleep 0.5
+docker exec db bash -c 'psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -f db/init.sql'
+echo "DB is ready"
+echo
+
+docker exec api bash -c 'echo "Api is ready on http://localhost:${API_PORT}"'
+docker exec web bash -c 'echo "Frontend is ready on http://localhost:${WEB_PORT}"'
