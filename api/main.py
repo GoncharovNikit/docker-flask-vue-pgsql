@@ -1,12 +1,22 @@
 import psycopg2, os
-from flask import Flask, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI()
 
-@app.route('/api_test')
-def api_test():
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        'http://localhost:' + os.environ.get('WEB_PORT')
+    ],
+    allow_credentials=True,
+    allow_methods=['*'],
+    allow_headers=['*']
+)
+
+
+@app.get('/api_test')
+async def api_test():
     conn = psycopg2.connect(
         host=os.environ.get('DB_HOST'),
         database=os.environ.get('POSTGRES_DB'),
@@ -21,4 +31,4 @@ def api_test():
         cur.close()
         conn.close()
 
-    return jsonify(users)
+    return users
